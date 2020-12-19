@@ -10,13 +10,16 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: |
+        set +x
         make -f docker.Makefile build cross
+        assets=()
         cd build
         for f in docker-*; do
           tar czf "../${f%.exe}.tgz" $f
+          assets+=("-a" "${f%.exe}.tgz")
         done
         cd ..
         tag_name="${GITHUB_REF##*/}"
-        hub release create *.tgz -m "$tag_name" "$tag_name"
+        hub release create "${assets[@]}" -m "$tag_name" "$tag_name"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
