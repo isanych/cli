@@ -1,0 +1,22 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - run: |
+        make -f docker.Makefile build cross
+        cd build
+        for f in docker-*; do
+          tar czf "../${f%.exe}.tgz" $f
+        done
+        cd ..
+        tag_name="${GITHUB_REF##*/}"
+        hub release create *.tgz -m "$tag_name" "$tag_name"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
